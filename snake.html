@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+
+    #game-board {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border: 10px solid #333;
+    }
+
+    .snake, .food, .wall {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+    }
+
+    .snake {
+      background-color: #2ecc71;
+    }
+
+    .food {
+      background-color: #e74c3c;
+    }
+
+    .wall {
+      background-color: #3498db;
+    }
+
+    #score {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-board"></div>
+  <div id="score">Score: 0</div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const board = document.getElementById('game-board');
+      const scoreDisplay = document.getElementById('score');
+
+      const gridSize = 15;
+      const snakeSize = 20;
+      let snake = [{ x: 2, y: 2 }];
+      let food = getRandomPosition();
+      let walls = [
+        { x: 5, y: 5 },
+        { x: 10, y: 15 },
+        { x: 15, y: 10 }
+      ];
+      let direction = 'right';
+      let score = 0;
+
+      function getRandomPosition() {
+        return {
+          x: Math.floor(Math.random() * gridSize),
+          y: Math.floor(Math.random() * gridSize)
+        };
+      }
+
+      function draw() {
+        board.innerHTML = '';
+
+        // Draw Snake
+        snake.forEach(segment => {
+          const snakeSegment = document.createElement('div');
+          snakeSegment.className = 'snake';
+          snakeSegment.style.left = `${segment.x * snakeSize}px`;
+          snakeSegment.style.top = `${segment.y * snakeSize}px`;
+          board.appendChild(snakeSegment);
+        });
+
+        // Draw Food
+        const foodElement = document.createElement('div');
+        foodElement.className = 'food';
+        foodElement.style.left = `${food.x * snakeSize}px`;
+        foodElement.style.top = `${food.y * snakeSize}px`;
+        board.appendChild(foodElement);
+
+        // Draw Walls
+        walls.forEach(wall => {
+          const wallElement = document.createElement('div');
+          wallElement.className = 'wall';
+          wallElement.style.left = `${wall.x * snakeSize}px`;
+          wallElement.style.top = `${wall.y * snakeSize}px`;
+          board.appendChild(wallElement);
+        });
+      }
+
+      function updateScore() {
+        scoreDisplay.textContent = `Score: ${score}`;
+      }
+
+      function checkCollision() {
+        // Check if snake collides with walls
+        if (snake[0].x < 0 || snake[0].x >= gridSize || snake[0].y < 0 || snake[0].y >= gridSize) {
+          endGame();
+        }
+
+        // Check if snake collides with itself
+        for (let i = 1; i < snake.length; i++) {
+          if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) {
+            endGame();
+          }
+        }
+
+        // Check if snake eats food
+        if (snake[0].x === food.x && snake[0].y === food.y) {
+          score++;
+          updateScore();
+          snake.push({});
+          food = getRandomPosition();
+        }
+
+        // Check if snake collides with walls
+        for (let i = 0; i < walls.length; i++) {
+          if (snake[0].x === walls[i].x && snake[0].y === walls[i].y) {
+            endGame();
+          }
+        }
+      }
+
+      function endGame() {
+        alert(`Game Over! Your Score: ${score}`);
+        snake = [{ x: 2, y: 2 }];
+        food = getRandomPosition();
+        score = 0;
+        updateScore();
+      }
+
+      function gameLoop() {
+        // Update Snake Position
+        for (let i = snake.length - 1; i > 0; i--) {
+          snake[i].x = snake[i - 1].x;
+          snake[i].y = snake[i - 1].y;
+        }
+
+        // Update Head of the Snake
+        switch (direction) {
+          case 'up':
+            snake[0].y -= 1;
+            break;
+          case 'down':
+            snake[0].y += 1;
+            break;
+          case 'left':
+            snake[0].x -= 1;
+            break;
+          case 'right':
+            snake[0].x += 1;
+            break;
+        }
+
+        // Check for Collisions
+        checkCollision();
+
+        // Draw Everything
+        draw();
+
+        // Call the next frame
+        setTimeout(gameLoop, 200); // Snake moves every 200 milliseconds
+      }
+
+      document.addEventListener('keydown', (e) => {
+        switch (e.key) {
+          case 'ArrowUp':
+            if (direction !== 'down') {
+              direction = 'up';
+            }
+            break;
+          case 'ArrowDown':
+            if (direction !== 'up') {
+              direction = 'down';
+            }
+            break;
+          case 'ArrowLeft':
+            if (direction !== 'right') {
+              direction = 'left';
+            }
+            break;
+          case 'ArrowRight':
+            if (direction !== 'left') {
+              direction = 'right';
+            }
+            break;
+        }
+      });
+
+      // Initial Draw
+      draw();
+      updateScore();
+
+      // Start the game loop
+      gameLoop();
+    });
+  </script>
+</body>
+</html>
